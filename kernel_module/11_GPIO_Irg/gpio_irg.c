@@ -11,6 +11,16 @@
 
 unsigned int irq_number;
 
+
+/**
+ * @brief Interrupt service routine is called, when interrupt is triggered
+ */
+static irqreturn_t gpio_irq_handler(int irq, void *dev_id)
+{
+	printk("gpio_irq: Interrupt was triggered and ISR was called!\n");
+	return IRQ_HANDLED;
+}
+
 static int __init my_init(void) {
     printk(KERN_INFO "qpio_irg: Loading module\n");
     
@@ -29,6 +39,12 @@ static int __init my_init(void) {
 
 	/* Setup the interrupt */
 	irq_number = gpio_to_irq(GPIO_BUTTON + IO_OFFSET);
+
+    if(request_irq(irq_number, gpio_irq_handler, IRQF_TRIGGER_RISING, "my_gpio_irq", NULL) != 0){
+		printk("Error!\nCan not request interrupt nr.: %d\n", irq_number);
+		gpio_free(17);
+		return -1;
+	}
 
     printk(KERN_INFO "Done\n");
     printk("GPIO 20 is mapped to IRQ Nr.: %d\n", irq_number);

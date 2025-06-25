@@ -63,3 +63,14 @@ const int MEDIUM_THRESHOLD = 50;
      v                v               v             v
     [GPIO]          [GPIO]         [GPIO]        [GPIO:PWM]
 
+
+
+## HC-SR04 conection GPIO 
+[example](https://pimylifeup.com/raspberry-pi-distance-sensor/)
+
+| HC-SR04 Pin | Raspberry Pi GPIO (BCM) | Pin Number  | Description          |
+|-------------|--------------------------|------------|----------------------|
+| VCC         | 5V Power                 | Pin 2 or 4 | Power supply         |
+| GND         | GND                      | Pin 6 or 9 | Ground               |
+| TRIG        | GPIO 23                  | Pin 16     | Trigger pin (output) |
+| ECHO        | GPIO 24                  | Pin 18     | Echo pin (input)     |

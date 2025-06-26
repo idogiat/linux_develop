@@ -29,39 +29,31 @@ This project implements a modular, multi-process system on a Raspberry Pi to mea
 | `Logger` | Handles logging per process |
 | `CommonDefs` | Contains constants and enum definitions |
 
-### CommonDefs Example
-```cpp
-enum class DistanceLevel {
-    FAR,
-    MEDIUM,
-    CLOSE
-};
 
-const int FAR_THRESHOLD = 100;
-const int MEDIUM_THRESHOLD = 50;
+## Diagram
+
 ```
+                          +---------------------+
+                          |  /dev/distance0     | <- Kernel Module
+                          +----------+----------+
+                                     |
+                                     v
+                          +---------------------+
+                          |   SensorPublisher   |
+                          |   (Master Process)  |
+                          +----------+----------+
+                                     |
+                          (Unix Socket Broadcast)
+                                     |
+       +-------------+--------------+----------------+--------------+
+       |             |              |                |              |
+       v             v              v                v              v
++------------+ +------------+ +-------------+ +-------------+ +--------------+
+| led_green  | | led_yellow | | led_red     | | buzzer      | | display (LCD)|
+| process    | | process    | | process     | | process     | | process      |
++------------+ +------------+ +-------------+ +-------------+ +--------------+
 
-
-           +--------------------+
-           |  Kernel Module     |
-           |  /dev/distance0    |
-           +---------+----------+
-                     |
-                     v
-           +--------------------+
-           |  SensorPublisher   |  <-- Reads distance, broadcasts to clients
-           +---------+----------+
-                     |
-         +-----------+----------+-------------------+
-         |           |          |                   |
-         v           v          v                   v
-+--------------+ +-------------+ +------------+ +------------+
-| led_green    | | led_yellow  | | led_red    | | buzzer     |
-| process      | | process     | | process    | | process    |
-+--------------+ +-------------+ +------------+ +------------+
-     |                |               |             |
-     v                v               v             v
-    [GPIO]          [GPIO]         [GPIO]        [GPIO:PWM]
+```
 
 
 

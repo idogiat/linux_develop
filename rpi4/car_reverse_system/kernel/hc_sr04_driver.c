@@ -12,7 +12,7 @@
 
 #define TRIG_PIN  (23 + IO_OFFSET)
 #define ECHO_PIN  (24 + IO_OFFSET)
-#define DISTANCE_THRESHOLD_CM 20
+#define DISTANCE_THRESHOLD_CM 25
 
 static struct task_struct *sensor_thread;
 static int latest_distance = -1;

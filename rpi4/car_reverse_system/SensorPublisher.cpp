@@ -1,3 +1,4 @@
+#include "msg_protocol.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -76,10 +77,10 @@ public:
 class LedService : public Observer {
 public:
     void update(int data) override {
-        if (data < 10) 
+        if (data < MEDIUM_LEN) 
         {
             std::cout << "[LED] RED\n";
-        } else if (data < 20)
+        } else if (data < FAR_LEN)
         {
             std::cout << "[LED] YELLOW\n";
         }
@@ -94,7 +95,7 @@ public:
 class BuzzerService : public Observer {
 public:
     void update(int data) override {
-        if (data < 20) {
+        if (data < MEDIUM_LEN) {
             std::cout << "[Buzzer] Beep!\n";
         }
     }

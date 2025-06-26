@@ -1,4 +1,5 @@
 #include "msg_protocol.hpp"
+#include "common.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -7,6 +8,10 @@
 #include <chrono>
 #include <atomic>
 #include <mutex>
+#include <fcntl.h> 
+#include <unistd.h>
+#include <csignal>
+#include <sys/stat.h>
 
 // Observer interface
 class Observer {
@@ -56,7 +61,6 @@ public:
                 } else {
                     std::cerr << "[Sensor] Failed to read from " << filePath << "\n";
                 }
-                // std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         });
     }
@@ -76,6 +80,15 @@ public:
 // Example observer: LED service
 class LedService : public Observer {
 public:
+    LedService()
+    {
+        mkfifo(LEDS_PIPE_PATH, 0666);
+    }
+    
+    ~LedService() {
+        remove(LEDS_PIPE_PATH);
+    }
+
     void update(int data) override {
         if (data < MEDIUM_LEN) 
         {
@@ -88,24 +101,72 @@ public:
         {
             std::cout << "[LED] GREEN\n";
         }
+
+        int fd = open(LEDS_PIPE_PATH, O_WRONLY | O_NONBLOCK);
+        if (fd != -1)
+        {
+            std::string msg = std::to_string(data) + "\n";
+            write(fd, msg.c_str(), msg.size());
+            close(fd);
+        }
+        else
+        {
+            std::cerr << "[LED] Failed to write to pipe\n";
+        }
     }
 };
 
 // Example observer: Buzzer service
 class BuzzerService : public Observer {
 public:
+
+    BuzzerService()
+    {
+        mkfifo(BUZZER_PIPE_PATH, 0666);
+    }
+
+    ~BuzzerService()
+    {
+        remove(BUZZER_PIPE_PATH);
+    }
+
     void update(int data) override {
         if (data < MEDIUM_LEN) {
             std::cout << "[Buzzer] Beep!\n";
         }
+
+        int fd = open(BUZZER_PIPE_PATH, O_WRONLY | O_NONBLOCK);
+        if (fd != -1)
+        {
+            std::string msg = std::to_string(data) + "\n";
+            write(fd, msg.c_str(), msg.size());
+            close(fd);
+        }
+        else
+        {
+            std::cerr << "[BUZZER] Failed to write to pipe\n";
+        }
     }
 };
 
+
+std::shared_ptr<LedService> led;
+std::shared_ptr<BuzzerService> buzzer;
+
+void handle_sigint(int) {
+    std::cout << "\n[LED] Caught SIGINT, cleaning up...\n";
+    led.reset();  // Triggers destructor
+    buzzer.reset();
+    exit(0);
+}
+
 int main() {
+    std::signal(SIGINT, handle_sigint);
+
     SensorPublisher sensor;
 
-    auto led = std::make_shared<LedService>();
-    auto buzzer = std::make_shared<BuzzerService>();
+    led = std::make_shared<LedService>();
+    buzzer = std::make_shared<BuzzerService>();
 
     sensor.registerObserver(led);
     sensor.registerObserver(buzzer);

@@ -1,18 +1,15 @@
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -pthread
-
+LDFLAGS = -lgpiod
 # Target binary name
-TARGET = SensorPublisher
-
-# Source files
-SRCS = SensorPublisher.cpp
-
-# Build rule
-$(TARGET): $(SRCS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS)
+TARGETS = SensorPublisher LedService
 
 
+%: %.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+all: $(TARGETS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS)

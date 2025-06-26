@@ -90,18 +90,6 @@ public:
     }
 
     void update(int data) override {
-        if (data < MEDIUM_LEN) 
-        {
-            std::cout << "[LED] RED\n";
-        } else if (data < FAR_LEN)
-        {
-            std::cout << "[LED] YELLOW\n";
-        }
-        else
-        {
-            std::cout << "[LED] GREEN\n";
-        }
-
         int fd = open(LEDS_PIPE_PATH, O_WRONLY | O_NONBLOCK);
         if (fd != -1)
         {
@@ -141,10 +129,6 @@ public:
             std::string msg = std::to_string(data) + "\n";
             write(fd, msg.c_str(), msg.size());
             close(fd);
-        }
-        else
-        {
-            std::cerr << "[BUZZER] Failed to write to pipe\n";
         }
     }
 };

@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -pthread
 LDFLAGS = -lgpiod
 # Target binary name
-TARGETS = SensorPublisher LedService
+TARGETS = SensorPublisher LedService BuzzerService
 
 
 %: %.cpp

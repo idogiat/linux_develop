@@ -1,14 +1,17 @@
 #include "common.hpp"
 #include "msg_protocol.hpp"
+#include "heartbeat_shared.hpp"
 #include "gpio.hpp"
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <cstring>
 #include <atomic>
 #include <chrono>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
 
 #define RED_GPIO    17
 #define YELLOW_GPIO 27
@@ -20,6 +23,13 @@ static void blink_led(int gpio, std::atomic_bool& enabled, int delay_ms);
 
 int main()
 {
+    int wd_index = start_watchdog_heartbeat("LedService");
+    if (wd_index == -1)
+    {
+        std::cerr << "Failed to register with Watchdog\n";
+        return 1;
+    }
+    
     std::atomic<bool> redOn{false}, yellowOn{false}, greenOn{false};
 
     std::thread redThread(blink_led, RED_GPIO, std::ref(redOn), 100);

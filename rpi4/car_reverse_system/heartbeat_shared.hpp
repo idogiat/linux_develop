@@ -1,11 +1,14 @@
 #pragma once
 #include <time.h>
+#include <cstring>
+#include <string>
+
 
 #define SHM_NAME     "/watchdog_shm"
 #define MAX_PROCESSES 8
 
 
-struct HeartbeatEntrys,
+struct HeartbeatEntry
 {
     pid_t pid;
     time_t last_heartbeat;

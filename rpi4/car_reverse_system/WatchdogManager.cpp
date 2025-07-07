@@ -20,14 +20,17 @@ int main()
 
     HeartbeatTable* table = static_cast<HeartbeatTable*>(ptr);
 
-    while (true) {
+    while (true)
+    {
         time_t now = time(NULL);
-        for (int i = 0; i < MAX_PROCESSES; ++i) {
+        for (int i = 0; i < MAX_PROCESSES; ++i)
+        {
             if (table->entries[i].pid == 0) continue;
 
             double seconds = difftime(now, table->entries[i].last_heartbeat);
 
-            if (seconds > 5) {
+            if (seconds > 5)
+            {
                 std::cout << "[WATCHDOG] Process " << table->entries[i].name
                           << " (PID " << table->entries[i].pid << ") not responding\n";
                 kill(table->entries[i].pid, SIGKILL);

@@ -24,3 +24,4 @@ struct HeartbeatTable
 
 
 int start_watchdog_heartbeat(const std::string& name);
+void unregister_watchdog_client(int index);

@@ -62,3 +62,35 @@ int start_watchdog_heartbeat(const std::string& name)
 
     return my_index;
 }
+
+
+void unregister_watchdog_client(int index)
+{
+    int shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
+    if (shm_fd == -1)
+    {
+        perror("shm_open");
+        return;
+    }
+
+    void* shm_ptr = mmap(NULL, sizeof(HeartbeatTable), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_ptr == MAP_FAILED)
+    {
+        perror("mmap");
+        close(shm_fd);
+        return;
+    }
+
+    HeartbeatTable* table = static_cast<HeartbeatTable*>(shm_ptr);
+    if (index >= 0 && index < MAX_PROCESSES)
+    {
+        table->entries[index].pid = 0;
+        table->entries[index].last_heartbeat = 0;
+        memset(table->entries[index].name, 0, sizeof(table->entries[index].name));
+        memset(table->entries[index].path, 0, sizeof(table->entries[index].path));
+        std::cout << "[WatchdogClient] Unregistered from index " << index << std::endl;
+    }
+
+    munmap(shm_ptr, sizeof(HeartbeatTable));
+    close(shm_fd);
+}

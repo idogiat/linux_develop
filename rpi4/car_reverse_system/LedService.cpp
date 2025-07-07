@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <chrono>
+#include <csignal>
 
 
 #define RED_GPIO    17
@@ -18,19 +20,37 @@
 #define GREEN_GPIO  22
 
 
+auto last_data_time = std::chrono::steady_clock::now();
+std::atomic<bool> redOn{false}, yellowOn{false}, greenOn{false};
+int wd_index;
+
 static void blink_led(int gpio, std::atomic_bool& enabled, int delay_ms);
+
+void handle_sigint(int)
+{
+    std::cout << "\n[LED] Caught SIGINT, cleaning up...\n";
+    unregister_watchdog_client(wd_index);
+    redOn = false;
+    yellowOn = false;
+    greenOn = false;
+    exit(0);
+}
 
 
 int main()
 {
-    int wd_index = start_watchdog_heartbeat("LedService");
+    
+    std::string service_name = "LedService";
+    wd_index = start_watchdog_heartbeat(service_name);
     if (wd_index == -1)
     {
         std::cerr << "Failed to register with Watchdog\n";
         return 1;
     }
-    
-    std::atomic<bool> redOn{false}, yellowOn{false}, greenOn{false};
+    else
+    {
+        std::signal(SIGINT, handle_sigint);
+    }
 
     std::thread redThread(blink_led, RED_GPIO, std::ref(redOn), 100);
     std::thread yellowThread(blink_led, YELLOW_GPIO, std::ref(yellowOn), 300);
@@ -42,7 +62,7 @@ int main()
 
     mkfifo(LEDS_PIPE_PATH, 0666);
 
-    int fd = open(LEDS_PIPE_PATH, O_RDONLY);
+    int fd = open(LEDS_PIPE_PATH, O_RDONLY | O_NONBLOCK);
     if (fd == -1) {
         std::cerr << "Failed to open pipe for reading.\n";
         return 1;
@@ -57,6 +77,8 @@ int main()
             buffer[len] = '\0';  // null terminate
             std::string line(buffer);
             int num = stoi(line);
+            last_data_time = std::chrono::steady_clock::now(); 
+
             if (num < MEDIUM_LEN)
             {
                 redOn = true;
@@ -83,22 +105,29 @@ int main()
         {
             // Writer closed the pipe
             close(fd);
-            fd = open(LEDS_PIPE_PATH, O_RDONLY);
+            fd = open(LEDS_PIPE_PATH, O_RDONLY | O_NONBLOCK);
             if (fd == -1)
             {
                 break;
             }
         }
-        else
+
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_data_time).count();
+
+        if (elapsed > TIMEOUT)
         {
-            std::cerr << "Read error.\n";
-            break;
+            redOn = false;
+            yellowOn = false;
+            greenOn = false;
         }
+        
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 
     close(fd);
     return 0;
-}
+} 
 
 
 static void blink_led(int gpio, std::atomic_bool& enabled, int delay_ms)

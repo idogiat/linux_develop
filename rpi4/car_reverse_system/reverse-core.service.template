@@ -1,0 +1,12 @@
+[Unit]
+Description=Reverse Core Service (Publisher + Watchdog)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=<PROJECT_DIR>
+ExecStart=<PROJECT_DIR>/reverse_core.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

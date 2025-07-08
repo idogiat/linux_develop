@@ -70,7 +70,6 @@ void handle_sigint(int) {
     if (buzzerThread.joinable()) buzzerThread.join();
     unlink(BUZZER_PIPE_PATH);
     unregister_watchdog_client(wd_index);
-
     exit(0);
 }
 
@@ -92,8 +91,8 @@ int main() {
     char buf[128];
     while (true) {
         ssize_t len = read(fd, buf, sizeof(buf) - 1);
-        last_data_time = std::chrono::steady_clock::now();
         if (len > 0) {
+    last_data_time = std::chrono::steady_clock::now();
             buf[len] = '\0';
             int val = std::stoi(buf);
 

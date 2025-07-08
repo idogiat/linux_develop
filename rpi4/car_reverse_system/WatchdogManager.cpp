@@ -3,13 +3,21 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <signal.h>
+#include <csignal>  
 #include <iostream>
 #include <ctime>
+
+void handle_sigint(int)
+{
+    shm_unlink(SHM_NAME);
+    exit(0);
+}
 
 int main()
 {
     int fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
     ftruncate(fd, sizeof(HeartbeatTable));
+    std::signal(SIGINT, handle_sigint);
 
     void* ptr = mmap(NULL, sizeof(HeartbeatTable), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED)

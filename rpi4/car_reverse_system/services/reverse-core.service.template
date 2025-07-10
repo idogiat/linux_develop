@@ -5,7 +5,9 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=<PROJECT_DIR>
+ExecStartPre=/sbin/insmod <PROJECT_DIR>/kernel/hc_sr04_driver.ko
 ExecStart=<PROJECT_DIR>/reverse_core.sh
+ExecStopPost=/sbin/rmmod hc_sr04_driver
 Restart=on-failure
 
 [Install]

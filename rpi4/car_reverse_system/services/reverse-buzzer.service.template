@@ -1,6 +1,7 @@
 [Unit]
 Description=Reverse Project - Buzzer Service
-After=network.target
+After=network.target reverse-core.service
+Requires=reverse-core.service
 
 [Service]
 Type=simple

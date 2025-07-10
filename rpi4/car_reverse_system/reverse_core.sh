@@ -15,10 +15,10 @@ echo "[INFO] Starting sensor_publisher..."
 PUBLISHER_PID=$!
 
 # Start watchdog with sensor_publisher PID
-echo "[INFO] Starting watchdog..."
-"$WATCHDOG" "$PUBLISHER_PID" &
-WATCHDOG_PID=$!
+# echo "[INFO] Starting watchdog..."
+# "$WATCHDOG" "$PUBLISHER_PID" &
+# WATCHDOG_PID=$!
 
 # Wait for both processes
 wait $PUBLISHER_PID
-wait $WATCHDOG_PID
+# wait $WATCHDOG_PID

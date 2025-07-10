@@ -1,12 +1,12 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -pthread
+DEBUG_FLAGS = -g
+CXXFLAGS = -std=c++17 -Wall -pthread $(DEBUG_FLAGS)
 LDFLAGS = -lgpiod
-
 
 # Target binary name
 TARGETS = SensorPublisher LedService BuzzerService WatchdogManager
-COMMON_OBJ = heartbeat_shared.o
+# COMMON_OBJ = heartbeat_shared.o
 OBJ = SensorPublisher.o LedService.o BuzzerService.o WatchdogManager.o
 
 %.o: %.cpp

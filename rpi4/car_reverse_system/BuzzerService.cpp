@@ -1,5 +1,4 @@
 #include "common.hpp"
-#include "heartbeat_shared.hpp"
 #include "gpio.hpp" 
 #include <iostream>
 #include <fstream>
@@ -19,7 +18,6 @@ std::atomic<bool> stopFlag(false);
 std::thread buzzerThread;
 
 auto last_data_time = std::chrono::steady_clock::now();
-int wd_index;
 
 void beep(GPIO& gpio, int frequency, int durationMs)
 {
@@ -69,30 +67,30 @@ void handle_sigint(int) {
     stopFlag = true;
     if (buzzerThread.joinable()) buzzerThread.join();
     unlink(BUZZER_PIPE_PATH);
-    unregister_watchdog_client(wd_index);
     exit(0);
 }
 
 int main() {
-    
-    std::string service_name = "BuzzerService";
-    wd_index = start_watchdog_heartbeat(service_name);
     std::signal(SIGINT, handle_sigint);
+    std::signal(SIGTERM, handle_sigint);
     mkfifo(BUZZER_PIPE_PATH, 0666);
 
     buzzerThread = std::thread(buzzer_loop);
 
     int fd = open(BUZZER_PIPE_PATH, O_RDONLY | O_NONBLOCK);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         std::cerr << "[Buzzer] Failed to open pipe\n";
         return 1;
     }
 
     char buf[128];
-    while (true) {
+    while (true)
+    {
         ssize_t len = read(fd, buf, sizeof(buf) - 1);
-        if (len > 0) {
-    last_data_time = std::chrono::steady_clock::now();
+        if (len > 0)
+        {
+            last_data_time = std::chrono::steady_clock::now();
             buf[len] = '\0';
             int val = std::stoi(buf);
 

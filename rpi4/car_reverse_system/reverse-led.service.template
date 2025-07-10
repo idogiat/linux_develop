@@ -1,0 +1,14 @@
+[Unit]
+Description=Reverse Project - LED Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=<PROJECT_DIR>/LedService
+WorkingDirectory=<PROJECT_DIR>
+Restart=on-failure
+PrivateTmp=no
+NoNewPrivileges=false
+
+[Install]
+WantedBy=multi-user.target

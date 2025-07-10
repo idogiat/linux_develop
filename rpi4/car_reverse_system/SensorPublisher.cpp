@@ -156,12 +156,12 @@ int main() {
     sensor.registerObserver(buzzer);
 
     sensor.start("/dev/distance0");
+    std::cout << "Sensor monitoring started.\n";
 
-    std::cout << "Sensor monitoring started. Press Enter to stop.\n";
-    std::cin.get();  // Wait for user to press Enter
-
-    sensor.stop();
-    std::cout << "Sensor monitoring stopped.\n";
+    while (true)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 
     return 0;
 }

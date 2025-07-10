@@ -1,6 +1,5 @@
 #include "common.hpp"
 #include "msg_protocol.hpp"
-#include "heartbeat_shared.hpp"
 #include "gpio.hpp"
 #include <iostream>
 #include <fstream>
@@ -22,14 +21,14 @@
 
 auto last_data_time = std::chrono::steady_clock::now();
 std::atomic<bool> redOn{false}, yellowOn{false}, greenOn{false};
-int wd_index;
+
 
 static void blink_led(int gpio, std::atomic_bool& enabled, int delay_ms);
+
 
 void handle_sigint(int)
 {
     std::cout << "\n[LED] Caught SIGINT, cleaning up...\n";
-    unregister_watchdog_client(wd_index);
     redOn = false;
     yellowOn = false;
     greenOn = false;
@@ -39,18 +38,8 @@ void handle_sigint(int)
 
 int main()
 {
-    
-    std::string service_name = "LedService";
-    wd_index = start_watchdog_heartbeat(service_name);
-    if (wd_index == -1)
-    {
-        std::cerr << "Failed to register with Watchdog\n";
-        return 1;
-    }
-    else
-    {
-        std::signal(SIGINT, handle_sigint);
-    }
+    std::signal(SIGINT, handle_sigint);
+    std::signal(SIGTERM, handle_sigint);
 
     std::thread redThread(blink_led, RED_GPIO, std::ref(redOn), 100);
     std::thread yellowThread(blink_led, YELLOW_GPIO, std::ref(yellowOn), 300);
@@ -72,57 +61,46 @@ int main()
     while (true)
     {
         ssize_t len = read(fd, buffer, sizeof(buffer) - 1);
-        if (len > 0)
-        {
-            buffer[len] = '\0';  // null terminate
+        if (len > 0) {
+            buffer[len] = '\0';
             std::string line(buffer);
-            int num = stoi(line);
-            last_data_time = std::chrono::steady_clock::now(); 
 
-            if (num < MEDIUM_LEN)
-            {
-                redOn = true;
-                yellowOn = false;
-                greenOn = false;
-                std::cout << "[LED] RED\n";
+            try {
+                int num = std::stoi(line);
+                last_data_time = std::chrono::steady_clock::now(); 
+
+                if (num < MEDIUM_LEN) {
+                    redOn = true; yellowOn = false; greenOn = false;
+                    std::cout << "[LED] RED\n";
+                } else if (num < FAR_LEN) {
+                    redOn = false; yellowOn = true; greenOn = false;
+                    std::cout << "[LED] YELLOW\n";
+                } else {
+                    redOn = false; yellowOn = false; greenOn = true;
+                    std::cout << "[LED] GREEN\n";
+                }
+
+            } catch (const std::exception& e) {
+                std::cerr << "[LED] Failed to parse input: '" << line << "' - " << e.what() << "\n";
             }
-            else if (num < FAR_LEN)
-            {
-                redOn = false;
-                yellowOn = true;
-                greenOn = false;
-                std::cout << "[LED] YELLOW\n";
-            }
-            else
-            {
-                redOn = false;
-                yellowOn = false;
-                greenOn = true;
-                std::cout << "[LED] GREEN\n";
-            }
+
         }
-        else if (len == 0)
+        else if (len == -1)
         {
-            // Writer closed the pipe
-            close(fd);
-            fd = open(LEDS_PIPE_PATH, O_RDONLY | O_NONBLOCK);
-            if (fd == -1)
+            if (errno != EAGAIN && errno != EWOULDBLOCK)
             {
-                break;
+                std::cerr << "[LED] Read error from pipe: " << strerror(errno) << "\n";
             }
         }
 
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_data_time).count();
 
-        if (elapsed > TIMEOUT)
-        {
-            redOn = false;
-            yellowOn = false;
-            greenOn = false;
+        if (elapsed > TIMEOUT) {
+            redOn = false; yellowOn = false; greenOn = false;
         }
-        
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     close(fd);

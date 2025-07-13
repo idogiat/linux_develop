@@ -5,9 +5,9 @@ CXXFLAGS = -std=c++17 -Wall -pthread $(DEBUG_FLAGS)
 LDFLAGS = -lgpiod
 
 # Target binary name
-TARGETS = SensorPublisher LedService BuzzerService WatchdogManager
-# COMMON_OBJ = heartbeat_shared.o
-OBJ = SensorPublisher.o LedService.o BuzzerService.o WatchdogManager.o
+TARGETS = SensorPublisher LedService BuzzerService
+OBJ = SensorPublisher.o LedService.o BuzzerService.o
+# COMMON_OBJ =
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $< -o $@ $(LDFLAGS)

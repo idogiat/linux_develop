@@ -31,7 +31,6 @@ sudo chmod 666 "$BUZZER_PIPE_PATH"
 echo "[3/6] add permitions..."
 chmod +x "$PROJECT_DIR/reverse_core.sh"
 chmod +x "$PROJECT_DIR/SensorPublisher"
-chmod +x "$PROJECT_DIR/WatchdogManager"
 chmod +x "$PROJECT_DIR/LedService"
 chmod +x "$PROJECT_DIR/BuzzerService"
 

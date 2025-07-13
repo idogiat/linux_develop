@@ -5,13 +5,13 @@ This project implements a modular, multi-process system on a Raspberry Pi to mea
 
 ## Features
 - Kernel module for real-time HC-SR04 distance sensing
+- IPC via Named Pipes Broadcast  (Observer Design Pattern)
 - Multiple user-space processes for individual components:
   - LED indicators (green, yellow, red)
   - Buzzer alert
-  - (Planned) Display screen
-- IPC via Unix Domain Sockets (or FIFO/Message Queues)
 - Separation of concerns and scalable design
-- Clean modular C++17 codebase
+- Running as linux services. 
+- Clean modular C++17 codebase.
 
 ---
 
@@ -20,14 +20,11 @@ This project implements a modular, multi-process system on a Raspberry Pi to mea
 ### Core Components
 | Class | Responsibility |
 |-------|----------------|
-| `DistanceReader` | Reads current distance from `/dev/distance0` |
-| `DistanceClassifier` | Maps raw cm to enums (`FAR`, `MEDIUM`, `CLOSE`) |
+| `hc_sr04_driver` | Reads current distance from `/dev/distance0` |
 | `SensorPublisher` | Reads distance and publishes to IPC sockets |
 | `LedProcess` | Receives level, controls LED (color-specific) |
 | `BuzzerProcess` | Receives level, controls buzzer sound |
-| `UnixSocketServer/Client` | Handles IPC communication |
-| `Logger` | Handles logging per process |
-| `CommonDefs` | Contains constants and enum definitions |
+| `msg_protocol` | Maps raw cm to enums (`FAR`, `MEDIUM`, `CLOSE`) |
 
 
 ## Diagram
@@ -71,3 +68,19 @@ This project implements a modular, multi-process system on a Raspberry Pi to mea
 | **LED - Red**    | GPIO 17                 | Pin 11     | Close range indicator  |
 | **LED - Yellow** | GPIO 27                 | Pin 13     | Medium range indicator |
 | **LED - Green**  | GPIO 22                 | Pin 15     | Far range indicator    |
+
+
+## how to run
+```
+sudo ./install.sh
+```
+- compile kernel module, and services.
+- add permitions
+- load services and start them.
+
+```
+./uninstall.sh
+```
+- stop services
+
+to cleanup build files run `make clean`
